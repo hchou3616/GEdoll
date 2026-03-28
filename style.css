@@ -126,9 +126,9 @@ body { background-color: #f0f4f8; margin: 0; padding: 20px; display: flex; justi
 /* 放置區 (Drop Zones) */
 .drop-zone { position: absolute; border: 2px dashed rgba(0,0,0,0.1); display: flex; justify-content: center; align-items: center; }
 .drop-zone.drag-over { background-color: rgba(100, 200, 255, 0.3); border-color: #64c8ff; border-radius: 10px; }
-.zone-hair { top: -20px; left: 50%; transform: translateX(-50%); width: 105px; height: 130px; z-index: 3; }
+.zone-hair { top: -20px; left: 50%; transform: translateX(-50%); width: 105px; height: 130px; z-index: 5; }
 .zone-head { top: -38px; left: 50%; transform: translateX(-50%); width: 115px; height: 100px; z-index: 10; }
-.zone-body { top: 87px; left: 12%;  width: 188px; height: 210px; z-index: 5; }
+.zone-body { top: 87px; left: 12%;  width: 188px; height: 210px; z-index: 3; }
 .zone-hand { top: 220px; right: -10px; width: 100px; height: 100px; z-index: 8; }
 .zone-shoes { bottom: -20px; left: 50%; transform: translateX(-50%); width: 140px; height: 80px; z-index: 9; }
 
