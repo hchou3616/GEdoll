@@ -89,7 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 3. 觸控螢幕支援 (Mobile/Tablet)
+    // 3. 觸控螢幕支援 (Mobile/Tablet) - ⭐ 防粗手指優化版 ⭐
     // ==========================================
     let activeTouchItem = null;
 
@@ -111,10 +111,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         item.addEventListener('touchend', e => {
             if (!activeTouchItem) return;
-            const touch = e.changedTouches[0];
+            
+            // ⭐ 魔法 2：取得「拖曳物品的中心點」，而不是手指的位置
+            const rect = activeTouchItem.getBoundingClientRect();
+            const itemCenterX = rect.left + rect.width / 2;
+            const itemCenterY = rect.top + rect.height / 2;
+
             activeTouchItem.classList.remove('touch-dragging');
             
-            const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
+            // 用「物品的中心點」來判斷落在哪個感應區，超級準確！
+            const dropTarget = document.elementFromPoint(itemCenterX, itemCenterY);
             let placedSuccessfully = false;
 
             if (dropTarget && dropTarget.classList.contains('drop-zone')) {
@@ -129,6 +135,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     placedSuccessfully = true;
                 }
             }
+
+            // 如果沒放準，退回衣櫃
             if (!placedSuccessfully) {
                 resetItemStyles(activeTouchItem);
                 returnToInventory(activeTouchItem);
@@ -140,8 +148,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateTouchPosition(touch) {
         if (!activeTouchItem) return;
         const rect = activeTouchItem.getBoundingClientRect();
+        
+        // ⭐ 魔法 1：視覺偏移 (Offset)
+        // 讓物品浮在手指的「正上方約 50px」的位置，避免被手指擋住視線
         activeTouchItem.style.left = touch.clientX - (rect.width / 2) + 'px';
-        activeTouchItem.style.top = touch.clientY - (rect.height / 2) + 'px';
+        activeTouchItem.style.top = touch.clientY - (rect.height / 2) - 50 + 'px'; 
     }
 
     function resetItemStyles(item) {
