@@ -189,7 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
             downloadBtn.innerText = '⏳ 圖片生成中...';
             downloadBtn.style.pointerEvents = 'none'; 
 
-            const offsetAmount = 8; // 服裝補償位移
+            const offsetAmount = 6; // 服裝補償位移
 
             // 1. 強制捲軸回到最上方
             window.scrollTo(0, 0);
