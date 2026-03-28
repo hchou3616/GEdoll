@@ -89,7 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 3. 觸控螢幕支援 (Mobile/Tablet) - ⭐ 防粗手指優化版 ⭐
+    // 3. 觸控螢幕支援 (Mobile/Tablet) - ⭐ 防粗手指與穿透判定優化版 ⭐
     // ==========================================
     let activeTouchItem = null;
 
@@ -100,6 +100,8 @@ document.addEventListener('DOMContentLoaded', () => {
             activeTouchItem.classList.add('touch-dragging');
             activeTouchItem.classList.remove('dropped');
             document.body.appendChild(activeTouchItem); 
+            
+            // 觸發第一下的位置更新
             updateTouchPosition(e.touches[0]);
         }, { passive: false });
 
@@ -112,31 +114,45 @@ document.addEventListener('DOMContentLoaded', () => {
         item.addEventListener('touchend', e => {
             if (!activeTouchItem) return;
             
-            // ⭐ 魔法 2：取得「拖曳物品的中心點」，而不是手指的位置
+            // 🎯 取得拖曳物品當下的「中心點座標」(此時它正浮在手指上方)
             const rect = activeTouchItem.getBoundingClientRect();
             const itemCenterX = rect.left + rect.width / 2;
             const itemCenterY = rect.top + rect.height / 2;
 
             activeTouchItem.classList.remove('touch-dragging');
             
-            // 用「物品的中心點」來判斷落在哪個感應區，超級準確！
-            const dropTarget = document.elementFromPoint(itemCenterX, itemCenterY);
+            // 取得目前拿著的配件種類 (例如 'hair', 'head', 'body')
+            const itemCategory = activeTouchItem.getAttribute('data-category');
             let placedSuccessfully = false;
 
-            if (dropTarget && dropTarget.classList.contains('drop-zone')) {
-                if (dropTarget.getAttribute('data-accept') === activeTouchItem.getAttribute('data-category')) {
-                    if (dropTarget.hasChildNodes()) {
-                        const existingItem = dropTarget.querySelector('.drag-item');
+            // ⭐ 魔法 1：穿透判定法 ⭐
+            // 直接找出所有能接收這個配件的「專屬感應區」，無視 z-index 遮擋
+            const targetZones = document.querySelectorAll(`.drop-zone[data-accept="${itemCategory}"]`);
+
+            targetZones.forEach(zone => {
+                const zoneRect = zone.getBoundingClientRect();
+                
+                // 數學計算：檢查配件的「中心點」，是否落在這個專屬感應區的範圍內
+                if (
+                    itemCenterX >= zoneRect.left &&
+                    itemCenterX <= zoneRect.right &&
+                    itemCenterY >= zoneRect.top &&
+                    itemCenterY <= zoneRect.bottom
+                ) {
+                    // 如果裡面已經有東西，就把舊的退回衣櫃排隊
+                    if (zone.hasChildNodes()) {
+                        const existingItem = zone.querySelector('.drag-item');
                         if (existingItem) returnToInventory(existingItem);
                     }
-                    dropTarget.appendChild(activeTouchItem);
+                    // 成功穿上
+                    zone.appendChild(activeTouchItem);
                     resetItemStyles(activeTouchItem);
                     activeTouchItem.classList.add('dropped');
                     placedSuccessfully = true;
                 }
-            }
+            });
 
-            // 如果沒放準，退回衣櫃
+            // 如果沒放準（沒有進入對應的感應區），就自動退回衣櫃
             if (!placedSuccessfully) {
                 resetItemStyles(activeTouchItem);
                 returnToInventory(activeTouchItem);
@@ -149,10 +165,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!activeTouchItem) return;
         const rect = activeTouchItem.getBoundingClientRect();
         
-        // ⭐ 魔法 1：視覺偏移 (Offset)
-        // 讓物品浮在手指的「正上方約 50px」的位置，避免被手指擋住視線
+        // ⭐ 魔法 2：視覺偏移 (Offset) ⭐
+        // 讓物品浮在手指的「正上方約 60px」的位置 ( - 60 )
+        // 這樣學生的手指就不會擋住配件，可以看著漂浮的配件去瞄準人物
         activeTouchItem.style.left = touch.clientX - (rect.width / 2) + 'px';
-        activeTouchItem.style.top = touch.clientY - (rect.height / 2) - 50 + 'px'; 
+        activeTouchItem.style.top = touch.clientY - (rect.height / 2) - 60 + 'px'; 
     }
 
     function resetItemStyles(item) {
@@ -160,7 +177,6 @@ document.addEventListener('DOMContentLoaded', () => {
         item.style.left = '';
         item.style.top = '';
     }
-
     // ==========================================
     // 4. 下載作品截圖功能 (加入雙人補償位移 + 自動長高防切邊)
     // ==========================================
