@@ -178,7 +178,7 @@ document.addEventListener('DOMContentLoaded', () => {
         item.style.top = '';
     }
     // ==========================================
-    // 4. 下載作品截圖功能 (加入手機版「半身照防裁切」機制)
+    // 4. 下載作品截圖功能 (加入雙人補償位移 + 自動長高防切邊)
     // ==========================================
     const downloadBtn = document.getElementById('download-btn');
     const stageToCapture = document.getElementById('stage');
@@ -189,41 +189,36 @@ document.addEventListener('DOMContentLoaded', () => {
             downloadBtn.innerText = '⏳ 圖片生成中...';
             downloadBtn.style.pointerEvents = 'none'; 
 
-            const offsetAmount = 10; // 服裝補償位移
+            // ⭐ 1. 設定補償位移參數 (您可以隨時微調這個數字) ⭐
+            const offsetAmount = 10; // 服裝往下推多少，白板下緣就跟著增加多少
 
-            // 1. 強制捲軸回到最上方
+            // 強制捲軸回到最上方
             window.scrollTo(0, 0);
 
-            // 2. 凍結內部排版
+            // ⭐ 2. 凍結內部排版：避免大白板長高時，裡面的人物跟著位移 ⭐
             const silContainer = document.querySelector('.silhouettes-container');
             let originalSilContainerStyle = '';
             if (silContainer) {
                 originalSilContainerStyle = silContainer.getAttribute('style') || '';
                 const silContainerRect = silContainer.getBoundingClientRect();
-                silContainer.style.height = silContainerRect.height + 'px'; 
-                silContainer.style.flex = 'none'; 
+                silContainer.style.height = silContainerRect.height + 'px'; // 鎖死高度
+                silContainer.style.flex = 'none'; // 拔除 Flex，死釘在原位
             }
 
-            // ⭐ 3. 手機版防裁切：抓取「真實內容高度 (scrollHeight)」，無視手機螢幕壓縮 ⭐
-            const actualWidth = Math.max(stageToCapture.clientWidth, stageToCapture.scrollWidth);
-            // 人物是 500px 高，加上 padding 大約需要 550px。取 scrollHeight 跟 550 中比較大的一個
-            const actualHeight = Math.max(stageToCapture.scrollHeight, 550); 
-            
-            stageToCapture.style.width = actualWidth + 'px';
-            stageToCapture.style.height = (actualHeight + offsetAmount) + 'px'; 
-            
-            // 強制解除隱藏限制，確保腳能露出來
-            const originalOverflow = stageToCapture.style.overflow || '';
-            stageToCapture.style.overflow = 'visible';
+            // ⭐ 3. 大白板自動長高：高度加上剛剛設定的 offsetAmount ⭐
+            const rect = stageToCapture.getBoundingClientRect();
+            stageToCapture.style.width = rect.width + 'px';
+            stageToCapture.style.height = (rect.height + offsetAmount) + 'px'; 
 
-            // ⭐ 4. 強制鎖死人物身高：無視手機擠壓，死釘在 250x500 ⭐
+            // 鎖定每一個人物外框的尺寸
             const silhouettes = document.querySelectorAll('.silhouette');
             silhouettes.forEach(s => {
-                s.style.width = '250px';   
-                s.style.height = '500px';  
+                const sRect = s.getBoundingClientRect();
+                s.style.width = sRect.width + 'px';
+                s.style.height = sRect.height + 'px';
             });
 
-            // 5. 雙人同步往下推
+            // ⭐ 4. 雙人同步往下推：推動的距離剛好等於大白板長高的距離 ⭐
             const bodyZones = document.querySelectorAll('.zone-body');
             const originalBodyTops = [];
             bodyZones.forEach((zone, index) => {
@@ -232,7 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 zone.style.top = (currentTop + offsetAmount) + 'px'; 
             });
 
-            // 隱藏虛線框
+            // 隱藏虛線框 (變透明)
             const allDropZones = document.querySelectorAll('.drop-zone');
             allDropZones.forEach(zone => {
                 zone.style.borderColor = 'transparent';
@@ -244,10 +239,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 scale: 2, 
                 useCORS: true,
                 scrollY: 0, 
-                scrollX: 0,
-                // ⭐ 6. 截圖核心：強制指定畫布尺寸，拒絕套件自動裁切 ⭐
-                width: actualWidth,
-                height: actualHeight + offsetAmount
+                scrollX: 0  
             }).then(canvas => {
                 const imageURL = canvas.toDataURL('image/png');
                 const downloadLink = document.createElement('a');
@@ -266,8 +258,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 // 解除大白板與人物外框的鎖定
                 stageToCapture.style.width = '';
                 stageToCapture.style.height = '';
-                stageToCapture.style.overflow = originalOverflow; // 恢復 overflow
-                
                 silhouettes.forEach(s => {
                     s.style.width = '';
                     s.style.height = '';
