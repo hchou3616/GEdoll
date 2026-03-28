@@ -251,3 +251,36 @@ body { background-color: #f0f4f8; margin: 0; padding: 20px; display: flex; justi
     max-width: none;    /* 解除最大寬度限制 */
     left: 3px;
 }
+
+/* ==========================================
+   📱 手機與平板專屬排版 (RWD 響應式設計)
+   當螢幕寬度小於 900px 時，會自動觸發以下排版
+   ========================================== */
+@media (max-width: 900px) {
+    /* 1. 將左右版面改為「上下排列」，讓衣櫃在上、白板在下，釋放螢幕寬度 */
+    .game-container {
+        flex-direction: column;
+        height: auto;
+    }
+    
+    /* 2. 衣櫃區改為限制高度，讓學生可以在裡面上下滑動找衣服，不會佔滿整個螢幕 */
+    .inventory {
+        flex: none;
+        height: 250px; 
+    }
+    
+    /* 3. ⭐ 核心解法：讓大白板開啟「左右滑動」功能 ⭐ */
+    .stage {
+        flex: none;
+        height: 550px;
+        overflow-x: auto; /* 開啟左右捲軸 */
+        overflow-y: hidden; /* 關閉上下捲軸 */
+        -webkit-overflow-scrolling: touch; /* 讓蘋果 iOS 設備滑動更順暢 */
+    }
+    
+    /* 4. 強制撐開白板內部空間，保證兩個人物絕對有足夠的空間站立 */
+    .silhouettes-container {
+        min-width: 600px; /* 250px(左) + 250px(右) + 中間留白 */
+        height: 100%;
+    }
+}
