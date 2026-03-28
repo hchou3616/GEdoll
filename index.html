@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>性平紙娃娃裝扮系統</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+	
+    <div class="game-container">
+        <div class="inventory" id="inventory">
+            <button id="reset-btn" class="reset-btn">🔄 全部重置</button>
+			<button id="download-btn" class="download-btn">📥 下載作品</button>
+            <h2>裝扮配件區</h2>
+            
+			<div class="category-title">髮型配件</div>
+			<div class="drag-item" draggable="true" id="item-hair-short" data-category="hair">
+				<img src="images/hair1.png" alt="短髮" class="item-image">
+			</div>
+			<div class="drag-item" draggable="true" id="item-hair-midshort" data-category="hair">
+				<img src="images/hair4.png" alt="中短髮" class="item-image">
+			</div>
+			<div class="drag-item" draggable="true" id="item-hair-mid" data-category="hair">
+				<img src="images/hair3.png" alt="中髮" class="item-image">
+			</div>
+			<div class="drag-item" draggable="true" id="item-hair-long" data-category="hair">
+				<img src="images/hair2.png" alt="長髮" class="item-image">
+			</div>
+			
+			
+            <div class="category-title">頭部配件</div>
+            <div class="drag-item" draggable="true" id="item-bandana" data-category="head"><img src="images/headgear0.png" alt="紅底白點頭巾" class="item-image" ></div>
+            <div class="drag-item" draggable="true" id="item-crown" data-category="head"><img src="images/headgear1.png" alt="閃亮皇冠" class="item-image" ></div>
+            <div class="drag-item" draggable="true" id="item-helmet" data-category="head"><img src="images/headgear3.png" alt="消防員頭盔" class="item-image" ></div>
+            <div class="drag-item" draggable="true" id="item-nursehat" data-category="head"><img src="images/headgear4.png" alt="護士帽" class="item-image" ></div>
+            <div class="drag-item" draggable="true" id="item-swimcap" data-category="head"><img src="images/headgear5.png" alt="蛙鏡與泳帽" class="item-image" ></div>
+            <div class="drag-item" draggable="true" id="item-flower" data-category="head"><img src="images/headgear6.png" alt="一朵小花" class="item-image" ></div>
+
+            <div class="category-title">身體服裝</div>
+            <div class="drag-item" draggable="true" id="item-suspenders" data-category="body"><img src="images/cloth01.png" alt="西裝吊帶褲" class="item-image" ></div>
+            <div class="drag-item" draggable="true" id="item-floralshirt" data-category="body"><img src="images/cloth02.png" alt="黑色西裝" class="item-image" ></div>
+            <div class="drag-item" draggable="true" id="item-labcoat" data-category="body"><img src="images/cloth03.png" alt="實驗袍" class="item-image" ></div>
+            <div class="drag-item" draggable="true" id="item-paperbag" data-category="body"><img src="images/cloth04.png" alt="晚禮服" class="item-image" ></div>
+            <div class="drag-item" draggable="true" id="item-tutu" data-category="body"><img src="images/cloth05.png" alt="棒球服" class="item-image" ></div>
+            <div class="drag-item" draggable="true" id="item-apron" data-category="body"><img src="images/cloth06.png" alt="做家事圍裙" class="item-image" ></div>
+			<div class="drag-item" draggable="true" id="item-nurse" data-category="body"><img src="images/cloth07.png" alt="護士" class="item-image" ></div>
+			<div class="drag-item" draggable="true" id="item-fireman" data-category="body"><img src="images/cloth08.png" alt="消防員" class="item-image" ></div>
+			<div class="drag-item" draggable="true" id="item-baledancer" data-category="body"><img src="images/cloth09.png" alt="芭蕾舞者" class="item-image" ></div>
+			<div class="drag-item" draggable="true" id="item-athome" data-category="body"><img src="images/cloth10.png" alt="居家服" class="item-image" ></div>
+			<div class="drag-item" draggable="true" id="item-work" data-category="body"><img src="images/cloth11.png" alt="工作服" class="item-image" ></div>
+        
+
+            <div class="category-title">手持道具</div>
+            <div class="drag-item" draggable="true" id="item-nails" data-category="hand"><img src="images/props1.png" alt="彩色指甲油手掌" class="item-image" ></div>
+            <div class="drag-item" draggable="true" id="item-doll" data-category="hand"><img src="images/props2.png" alt="黑猩猩" class="item-image" ></div>
+            <div class="drag-item" draggable="true" id="item-stethoscope" data-category="hand"><img src="images/props3.png" alt="聽診器" class="item-image" ></div>
+            <div class="drag-item" draggable="true" id="item-wrench" data-category="hand"><img src="images/props4.png" alt="大扳手" class="item-image" ></div>
+            <div class="drag-item" draggable="true" id="item-pickaxe" data-category="hand"><img src="images/props5.png" alt="鐵鎚" class="item-image" ></div>
+            <div class="drag-item" draggable="true" id="item-binoculars" data-category="hand"><img src="images/props6.png" alt="鏡子" class="item-image" ></div>
+</div>
+       
+
+        <div class="stage" id="stage">
+            <h2>性別平等紙娃娃創作</h2>
+            <div class="silhouettes-container">
+                <div class="silhouette" id="person-1">
+					<img src="images/blank_boy.png" alt="空白人物" class="base-figure">
+					<div class="drop-zone zone-hair" data-accept="hair"></div>
+                    <div class="drop-zone zone-head" data-accept="head"></div>
+                    <div class="drop-zone zone-body" data-accept="body"></div>
+                    <div class="drop-zone zone-hand" data-accept="hand"></div>
+                    
+                </div>
+
+                <div class="silhouette" id="person-2">
+					<img src="images/blank_girl2.png" alt="空白人物" class="base-figure">
+					<div class="drop-zone zone-hair" data-accept="hair"></div>
+					<div class="drop-zone zone-head" data-accept="head"></div>
+                    <div class="drop-zone zone-body" data-accept="body"></div>
+                    <div class="drop-zone zone-hand" data-accept="hand"></div>
+                   
+                </div>
+            </div>
+        </div>
+    </div>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

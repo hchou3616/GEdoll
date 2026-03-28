@@ -1,0 +1,253 @@
+* { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+body { background-color: #f0f4f8; margin: 0; padding: 20px; display: flex; justify-content: center; }
+.game-container { display: flex; gap: 20px; width: 100%; max-width: 1200px; height: 85vh; }
+
+/* 左側衣櫃區 */
+.inventory {
+    flex: 1; background: white; padding: 20px; border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    display: flex; flex-wrap: wrap; align-content: flex-start; gap: 10px;
+    overflow-y: auto; /* 配件多，確保可以滾動 */
+}
+.inventory h2, .stage h2 { width: 100%; text-align: center; color: #333; margin-top: 0; }
+.category-title { width: 100%; font-size: 14px; font-weight: bold; color: #666; margin-top: 10px; border-bottom: 2px solid #eee; padding-bottom: 5px; }
+
+/* 重置按鈕 */
+.reset-btn {
+    width: 100%; padding: 10px; margin-bottom: 10px; background-color: #ff6b6b; color: white;
+    border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer;
+    box-shadow: 0 4px 0 #c92a2a; transition: transform 0.1s, box-shadow 0.1s;
+}
+.reset-btn:active { transform: translateY(4px); box-shadow: 0 0 0 #c92a2a; }
+
+/* 新增下載按鈕的樣式 */
+.download-btn {
+    width: 100%; 
+    padding: 10px; 
+    margin-bottom: 15px; /* 與分類標題保持距離 */
+    background-color: #20c997; /* 友善的薄荷綠 */
+    color: white;
+    border: none; 
+    border-radius: 8px; 
+    font-size: 16px; 
+    font-weight: bold; 
+    cursor: pointer;
+    box-shadow: 0 4px 0 #12b886; 
+    transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.download-btn:active { 
+    transform: translateY(4px); 
+    box-shadow: 0 0 0 #12b886; 
+}
+
+
+/* 拖曳配件樣式 */
+.drag-item { width: 75px; height: 75px; cursor: grab; transition: transform 0.2s; position: relative; }
+.drag-item:active { cursor: grabbing; }
+
+
+/* ==========================================
+   1. 基礎圖片設定 (左側衣櫃區專用)
+   讓圖示乖乖待在 75x75 的格子裡，絕對不會變大
+   ========================================== */
+.item-image { 
+    width: 100%; 
+    height: 100%; 
+    object-fit: contain; /* 在衣櫃裡用 contain 是絕對安全的，因為截圖不會拍衣櫃 */
+    border-radius: 8px; 
+    border: 2px solid transparent; 
+    pointer-events: none; 
+    user-select: none; 
+    position: relative; /* 確保它不會亂跑 */
+    display: block;
+}
+
+/* ==========================================
+   2. 穿上身後的防變形設定 (大白板區專用)
+   只有被拖進 .drop-zone 後，才會啟動截圖防變形機制
+   ========================================== */
+.drop-zone .item-image {
+    position: absolute; 
+    
+    /* 預設對齊頂部與水平置中 */
+    top: 0; 
+    left: 0; 
+    right: 0; 
+    margin: 0 auto; 
+    
+    /* 寬高自動等比例，防壓扁防拉長 */
+    width: 100%; 
+    height: auto; 
+    max-width: none; 
+}
+
+
+
+
+
+/* 視覺回饋與觸控支援 */
+.dragging { opacity: 0.5; transform: scale(1.05); }
+.touch-dragging { position: fixed !important; pointer-events: none; z-index: 9999; opacity: 0.8; transform: scale(1.1); }
+@keyframes popIn { 0% { transform: scale(0.8); } 50% { transform: scale(1.15); } 100% { transform: scale(1); } }
+.dropped { animation: popIn 0.3s ease-out forwards; }
+
+/* 右側大白板與人物 */
+.stage { flex: 2; background: #ffffff; border: 3px dashed #ccc; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; }
+.silhouettes-container { display: flex; justify-content: space-around; flex: 1; align-items: center; }
+.silhouette { 
+    position: relative; 
+    width: 250px; 
+    height: 500px; 
+    flex-shrink: 0; /* 關鍵防護：禁止 Flexbox 壓縮這個元素 */
+}
+
+.base-figure { 
+    position: absolute; 
+    
+    /* 1. 利用四面八方的 0 搭配 margin: auto 來達到完美的水平與垂直置中 */
+    top: 0; 
+    bottom: 0; 
+    left: 0; 
+    right: 0; 
+    margin: auto; 
+    
+    /* 2. 關鍵防變形指令：寬高設定為 auto (保持圖片原始比例) */
+    width: auto; 
+    height: auto; 
+    
+    /* 3. 最大限制：確保圖片再怎麼大，都不會超過 250x500 的容器範圍 */
+    max-width: 100%; 
+    max-height: 100%; 
+    
+    z-index: 1; 
+}
+
+/* 放置區 (Drop Zones) */
+.drop-zone { position: absolute; border: 2px dashed rgba(0,0,0,0.1); display: flex; justify-content: center; align-items: center; }
+.drop-zone.drag-over { background-color: rgba(100, 200, 255, 0.3); border-color: #64c8ff; border-radius: 10px; }
+.zone-hair { top: -20px; left: 50%; transform: translateX(-50%); width: 105px; height: 130px; z-index: 3; }
+.zone-head { top: -38px; left: 50%; transform: translateX(-50%); width: 115px; height: 100px; z-index: 10; }
+.zone-body { top: 87px; left: 12%;  width: 188px; height: 210px; z-index: 5; }
+.zone-hand { top: 220px; right: -10px; width: 100px; height: 100px; z-index: 8; }
+.zone-shoes { bottom: -20px; left: 50%; transform: translateX(-50%); width: 140px; height: 80px; z-index: 9; }
+
+.drop-zone .drag-item { width: 100%; height: 100%; }
+
+
+/* 長髮 */
+.drop-zone #item-hair-long .item-image {
+    position: relative; /* 開啟相對定位，確保截圖套件能正確讀取 */
+    width: 120%;        /* 替代原本的 scale(1.2) */
+    left: -10px;          /* 替代 translate 的 X 軸 */
+    top: 0px;          /* 替代 translate 的 Y 軸 */
+}
+
+/* 中長髮 (假設您的 mid 是指這個) */
+.drop-zone #item-hair-mid .item-image {
+    position: relative;
+    width: 100%;        /* 替代原本的 scale(1) */
+    left: 0px;
+    top: 5px;           /* 向下微調 5px */
+}
+
+
+/* 中短髮  */
+.drop-zone #item-hair-midshort .item-image {
+    position: relative;
+    width: 92%;        /* 替代原本的 scale(1) */
+    left: 0px;
+    top: 5px;           /* 向下微調 5px */
+}
+
+
+
+/* 蛙鏡與泳帽 */
+.drop-zone #item-swimcap .item-image {
+    position: relative;
+    width: 90%;         /* 保持 90% 大小 */
+    left: 5px;          /* 替代原本的 margin-left */
+    top: 18px;          /* 替代原本的 margin-top */
+}
+
+.drop-zone #item-flower .item-image {
+    position: relative;
+    width: 50%;        /* 替代原本的 scale(1) */
+    left: -5px;
+    top: 0px;           /* 向下微調 5px */
+}
+.drop-zone #item-wrench .item-image {
+    position: relative;
+    width: 50%;        /* 替代原本的 scale(1) */
+    left: 0px;
+    top: 0px;           /* 向下微調 5px */
+}
+
+/* ==========================================
+   個別身體服裝微調區 (黃金座標法)
+   只有當服裝被放到人物身上時 (.drop-zone) 才會套用此設定
+   ========================================== */
+
+/* 範例 1：西裝吊帶褲 (#item-suspenders)
+   吊帶褲需要向下移，露出空白人物的上半身，並調整寬度貼合身形 */
+.drop-zone #item-floralshirt .item-image {
+    position: absolute; /* 開啟絕對定位 */
+    top: 0px;          /* ★ 核心調整：向下移動 35px，露出頭部與脖子 (數字可自行微調) */
+    width: 94%;         /* ★ 核心調整：縮小寬度為 95%，貼合人物身形 (數字可自行微調) */
+    max-width: none;    /* 解除最大寬度限制，讓它可以依 width 設定顯示 */
+    left: 0px;          /* 如果需要左右微調 */
+}
+
+/* 範例 2：白色的科學實驗袍 (#item-labcoat)
+   實驗袍通常比較合身，位置可能不需要移動太多 */
+.drop-zone #item-labcoat .item-image {
+    position: absolute;
+    top: 0px;           /* 貼齊感應區頂部 */
+    width: 95%;        /* 原始寬度 */
+    left: 0px;
+}
+
+/* 範例 3：粉紅色的澎澎洋裝 (#item-tutu)
+   洋裝通常比較寬大，需要向下移，且可以讓它稍微超出框框一點點顯得更澎 */
+.drop-zone #item-tutu .item-image {
+    position: absolute;
+    top: -1px;           /* 稍微向下移 5px */
+    width: 100%;        /* 將寬度稍微放大為 105%，顯得更澎 (數字可自行微調) */
+    max-width: none;    /* 解除最大寬度限制 */
+    left: 3px;
+}
+.drop-zone #item-paperbag .item-image {
+    position: absolute;
+    top:1px;           /* 稍微向下移 5px */
+    width: 113%;        /* 將寬度稍微放大為 105%，顯得更澎 (數字可自行微調) */
+    max-width: none;    /* 解除最大寬度限制 */
+    left: -16px;
+}
+.drop-zone #item-baledancer .item-image {
+    position: absolute;
+    top:2px;           /* 稍微向下移 5px */
+    width: 117%;        /* 將寬度稍微放大為 105%，顯得更澎 (數字可自行微調) */
+    max-width: none;    /* 解除最大寬度限制 */
+    left: -15px;
+}
+.drop-zone #item-athome .item-image {
+    position: absolute;
+    top: -3px;           /* 稍微向下移 5px */
+    width: 110%;        /* 將寬度稍微放大為 105%，顯得更澎 (數字可自行微調) */
+    max-width: none;    /* 解除最大寬度限制 */
+    left: -10px;
+}
+.drop-zone #item-work .item-image {
+    position: absolute;
+    top: -2px;           /* 稍微向下移 5px */
+    width: 100%;        /* 將寬度稍微放大為 105%，顯得更澎 (數字可自行微調) */
+    max-width: none;    /* 解除最大寬度限制 */
+    left: 0px;
+}
+.drop-zone #item-nurse .item-image {
+    position: absolute;
+    top: 5px;           /* 稍微向下移 5px */
+    width: 104%;        /* 將寬度稍微放大為 105%，顯得更澎 (數字可自行微調) */
+    max-width: none;    /* 解除最大寬度限制 */
+    left: 3px;
+}
