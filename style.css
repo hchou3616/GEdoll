@@ -272,7 +272,7 @@ body { background-color: #f0f4f8; margin: 0; padding: 20px; display: flex; justi
     /* 3. ⭐ 核心解法：讓大白板開啟「左右滑動」功能 ⭐ */
     .stage {
         flex: none;
-        height: 550px;
+        height: 600px;
         overflow-x: auto; /* 開啟左右捲軸 */
         overflow-y: hidden; /* 關閉上下捲軸 */
         -webkit-overflow-scrolling: touch; /* 讓蘋果 iOS 設備滑動更順暢 */
