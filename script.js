@@ -89,62 +89,84 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 3. 觸控螢幕支援 (Mobile/Tablet) - ⭐ 防粗手指與穿透判定優化版 ⭐
+    // 3. 觸控螢幕支援 (Mobile/Tablet) - ⭐ 防多指干擾與粗手指優化版 ⭐
     // ==========================================
     let activeTouchItem = null;
+    let activeTouchId = null; // ⭐ 新增：用來記住「主人」手指的專屬 ID
 
     dragItems.forEach(item => {
         item.addEventListener('touchstart', e => {
+            // ⭐ 防護 1：如果已經有配件被拿著了，就嚴格禁止其他手指再來搗亂
+            if (activeTouchItem) return; 
+
             e.preventDefault(); 
+            
+            // ⭐ 防護 2：認主儀式，記住第一根觸碰螢幕的手指 ID
+            const touch = e.changedTouches[0];
+            activeTouchId = touch.identifier; 
+
             activeTouchItem = e.currentTarget.closest('.drag-item');
             activeTouchItem.classList.add('touch-dragging');
             activeTouchItem.classList.remove('dropped');
             document.body.appendChild(activeTouchItem); 
             
             // 觸發第一下的位置更新
-            updateTouchPosition(e.touches[0]);
+            updateTouchPosition(touch);
         }, { passive: false });
 
         item.addEventListener('touchmove', e => {
             if (!activeTouchItem) return;
             e.preventDefault();
-            updateTouchPosition(e.touches[0]);
+
+            // ⭐ 防護 3：在茫茫手指中，只找我們記住的那根「主人手指」
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                if (e.changedTouches[i].identifier === activeTouchId) {
+                    updateTouchPosition(e.changedTouches[i]);
+                    break; // 找到了就停止尋找
+                }
+            }
         }, { passive: false });
 
         item.addEventListener('touchend', e => {
             if (!activeTouchItem) return;
             
-            // 🎯 取得拖曳物品當下的「中心點座標」(此時它正浮在手指上方)
+            // ⭐ 防護 4：確認現在離開螢幕的，是不是我們的「主人手指」
+            let isPrimaryTouchEnded = false;
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                if (e.changedTouches[i].identifier === activeTouchId) {
+                    isPrimaryTouchEnded = true;
+                    break;
+                }
+            }
+            
+            // 如果離開的只是旁邊搗亂的手指，就不理它，繼續保持拖曳狀態
+            if (!isPrimaryTouchEnded) return; 
+
+            // 🎯 以下為原本的穿透判定與放置邏輯
             const rect = activeTouchItem.getBoundingClientRect();
             const itemCenterX = rect.left + rect.width / 2;
             const itemCenterY = rect.top + rect.height / 2;
 
             activeTouchItem.classList.remove('touch-dragging');
             
-            // 取得目前拿著的配件種類 (例如 'hair', 'head', 'body')
             const itemCategory = activeTouchItem.getAttribute('data-category');
             let placedSuccessfully = false;
 
-            // ⭐ 魔法 1：穿透判定法 ⭐
-            // 直接找出所有能接收這個配件的「專屬感應區」，無視 z-index 遮擋
             const targetZones = document.querySelectorAll(`.drop-zone[data-accept="${itemCategory}"]`);
 
             targetZones.forEach(zone => {
                 const zoneRect = zone.getBoundingClientRect();
                 
-                // 數學計算：檢查配件的「中心點」，是否落在這個專屬感應區的範圍內
                 if (
                     itemCenterX >= zoneRect.left &&
                     itemCenterX <= zoneRect.right &&
                     itemCenterY >= zoneRect.top &&
                     itemCenterY <= zoneRect.bottom
                 ) {
-                    // 如果裡面已經有東西，就把舊的退回衣櫃排隊
                     if (zone.hasChildNodes()) {
                         const existingItem = zone.querySelector('.drag-item');
                         if (existingItem) returnToInventory(existingItem);
                     }
-                    // 成功穿上
                     zone.appendChild(activeTouchItem);
                     resetItemStyles(activeTouchItem);
                     activeTouchItem.classList.add('dropped');
@@ -152,12 +174,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            // 如果沒放準（沒有進入對應的感應區），就自動退回衣櫃
+            // 如果沒放準，退回衣櫃
             if (!placedSuccessfully) {
                 resetItemStyles(activeTouchItem);
                 returnToInventory(activeTouchItem);
             }
+            
+            // ⭐ 防護 5：配件放好後，清空記憶，準備迎接下一次全新的點擊
             activeTouchItem = null;
+            activeTouchId = null; 
         });
     });
 
@@ -165,9 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!activeTouchItem) return;
         const rect = activeTouchItem.getBoundingClientRect();
         
-        // ⭐ 魔法 2：視覺偏移 (Offset) ⭐
-        // 讓物品浮在手指的「正上方約 60px」的位置 ( - 60 )
-        // 這樣學生的手指就不會擋住配件，可以看著漂浮的配件去瞄準人物
+        // 視覺偏移 (Offset)：保持懸浮在手指上方 60px
         activeTouchItem.style.left = touch.clientX - (rect.width / 2) + 'px';
         activeTouchItem.style.top = touch.clientY - (rect.height / 2) - 60 + 'px'; 
     }
